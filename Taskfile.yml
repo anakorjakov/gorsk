@@ -36,8 +36,53 @@ tasks:
         sh: basename "dirname {{.TARGET_PATH}}" | sed -e 's/[\/&]/\\&/g'
     preconditions:
       - sh: "[ {{.TARGET}} != '' ]"
-
+  relocate-win:
+    cmds:
+      - echo " *** Relocating packages to {{.TARGET_PATH}} ***"
+      - echo " *** Relocating packages from package name {{.PACKAGE_NAME}} ***"
+      - echo " *** Relocating packages from project name {{.PROJECT_NAME}} ***"
+      - echo " *** {{.TARGET_PROJECTNAME_UPPER}} ***"
+      - echo " *** {{.PROJECT_NAME_UPPER}} ***"
+      - task: replace-string-win
+        vars: {
+          SOURCE_STR: "{{.PACKAGE_NAME}}",
+          TARGET_STG: "{{.TARGET_PATH}}"
+        }
+      - task: replace-string-win
+        vars: {
+          SOURCE_STR: "{{.PROJECT_NAME}}",
+          TARGET_STG: "{{.TARGET_PROJECTNAME}}"
+        }
+      - task: replace-string-win
+        vars: {
+          SOURCE_STR: "{{.PROJECT_NAME_UPPER}}",
+          TARGET_STG: "{{.TARGET_PROJECTNAME_UPPER}}"
+        }
+      - echo " *** Completed *** "
+    silent: false
+    vars:
+      GITHUB: "github.com"
+      PROJECT_NAME_DIR:
+        sh: echo $(basename "$(dirname "$(pwd)")")
+      PROJECT_NAME: 
+        "gorsk"
+      PACKAGE_NAME: 
+        "github.com/ribice/gorsk"
+      TARGET_PATH: 
+        sh: echo "{{.TARGET}}"
+      TARGET_PROJECTNAME: 
+        sh: basename "dirname {{.TARGET_PATH}}"
+      TARGET_PROJECTNAME_UPPER: 
+        sh: echo "{{.TARGET_PATH}}" | tr [a-z] [A-Z]
+      PROJECT_NAME_UPPER: 
+        sh: echo "{{.PROJECT_NAME}}" | tr [a-z] [A-Z]
+    preconditions:
+      - sh: "[ {{.TARGET}} != '' ]"
   replace-string:
     cmds:
       - grep -rlI '{{.SOURCE_STR}}' --include=*.{go,json} ./ | xargs -I@ sed -i '' 's/{{.SOURCE_STR}}/{{.TARGET_STG}}/g' @
     silent: true
+  replace-string-win:
+    cmds:
+      - grep -rl '{{.SOURCE_STR}}' --include=*.{go,json} | xargs sed -i 's@{{.SOURCE_STR}}@{{.TARGET_STG}}@g'
+    silent: false
